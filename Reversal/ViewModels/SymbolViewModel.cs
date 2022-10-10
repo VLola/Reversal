@@ -1,19 +1,12 @@
 ﻿using Binance.Net.Clients;
 using Binance.Net.Enums;
 using Binance.Net.Objects.Models.Futures.Socket;
-using CryptoExchange.Net.CommonObjects;
 using CryptoExchange.Net.Sockets;
 using Newtonsoft.Json;
-using Reversal.Command;
 using Reversal.Models;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using static Reversal.ViewModels.MainViewModel;
 
 namespace Reversal.ViewModels
 {
@@ -22,14 +15,12 @@ namespace Reversal.ViewModels
         private UpdateSubscription? _updateSubscription { get; set; }
         public SymbolModel Symbol { get; set; }
         private BinanceSocketClient _socketClient { get; set; }
-        //private RelayCommand? _confirmReversalPriceCommand;
-        //public RelayCommand ConfirmReversalPriceCommand
-        //{
-        //    get { return _confirmReversalPriceCommand ?? (_confirmReversalPriceCommand = new RelayCommand(obj => {  })); }
-        //}
-        public SymbolViewModel(BinanceSocketClient socketClient, string symbolName)
+        private BinanceClient _client { get; set; }
+        private string _pathLog = $"{Directory.GetCurrentDirectory()}/log/";
+        public SymbolViewModel(BinanceClient client, BinanceSocketClient socketClient, string symbolName)
         {
             Symbol = new();
+            _client = client;
             _socketClient = socketClient;
             Symbol.Name = symbolName;
             Symbol.PropertyChanged += Symbol_PropertyChanged;
@@ -37,44 +28,75 @@ namespace Reversal.ViewModels
 
         private void Symbol_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == "Run")
+            if (e.PropertyName == "Run")
             {
-                if (Symbol.Run) SubscribeToAggregatedTradeUpdates();
-                else Unsubscribe();
-            }
-            else if(e.PropertyName == "ReversalPrice")
-            {
-
+                if (Symbol.Run) SubscribeToAggregatedTradeUpdatesAsync();
+                else UnsubscribeAsync();
             }
         }
-
-        private void SubscribeToAggregatedTradeUpdates()
+        private async void SubscribeToAggregatedTradeUpdatesAsync()
         {
             try
             {
-                _updateSubscription = _socketClient.UsdFuturesStreams.SubscribeToAggregatedTradeUpdatesAsync(Symbol.Name, Message =>
+                var result = await _socketClient.UsdFuturesStreams.SubscribeToAggregatedTradeUpdatesAsync(Symbol.Name, Message =>
                 {
                     Symbol.Price = Message.Data.Price;
-                }).Result.Data;
+                    if (!Symbol.IsOpenOrder)
+                    {
+                        if (Symbol.PositionSide == "Both")
+                        {
+                            if (Symbol.Side == "Buy")
+                            {
+                                if (Symbol.Price < Symbol.ReversalPrice)
+                                {
+                                    Symbol.IsOpenOrder = true;
+                                    OpenOrder();
+                                }
+                            }
+                            else if (Symbol.Side == "Sell")
+                            {
+                                if (Symbol.Price > Symbol.ReversalPrice)
+                                {
+                                    Symbol.IsOpenOrder = true;
+                                    OpenOrder();
+                                }
+                            }
+                        }
+                    }
+                });
+                if (!result.Success) WriteLog($"Failed Success SubscribeToAggregatedTradeUpdatesAsync: { result.Error?.Message}");
+                else
+                {
+                    _updateSubscription = result.Data;
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"SubscribeToAggregatedTradeUpdates {ex.Message}");
+                WriteLog($"Failed SubscribeToAggregatedTradeUpdatesAsync: {ex.Message}");
             }
         }
-        private void Unsubscribe()
+        private async void UnsubscribeAsync()
         {
             try
             {
-                if(_updateSubscription != null) _socketClient.UnsubscribeAsync(_updateSubscription);
+                if (_updateSubscription != null) {
+                    await _socketClient.UnsubscribeAsync(_updateSubscription);
+                    Wait();
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Unsubscribe {ex.Message}");
+                WriteLog($"Failed UnsubscribeAsync: {ex.Message}");
             }
         }
-        string Path = $"{Directory.GetCurrentDirectory()}/log/";
-        int count = 0;
+        private void Wait()
+        {
+            Symbol.ReversalPrice = 0m;
+            Symbol.Quantity = 0m;
+            Symbol.PositionSide = "";
+            Symbol.Side = "";
+            Symbol.Price = 0m;
+        }
         public void OrderUpdate(BinanceFuturesStreamOrderUpdate OrderUpdate)
         {
             if(Symbol.Select && OrderUpdate.UpdateData.Symbol == Symbol.Name)
@@ -92,12 +114,74 @@ namespace Reversal.ViewModels
                         if (OrderUpdate.UpdateData.Side == OrderSide.Buy) Symbol.Side = "Buy";
                         else Symbol.Side = "Sell";
                     }
+                    else
+                    {
+                        CheckOrderId(OrderUpdate.UpdateData.OrderId);
+                    }
                 }
                 // Write log
-                count++;
                 string json = JsonConvert.SerializeObject(OrderUpdate.UpdateData);
-                File.WriteAllText(Path + Symbol.Name + count, json);
+                WriteLog(json);
             }
+        }
+        private async void CheckOrderId(long id)
+        {
+            await Task.Run(async () => {
+                try
+                {
+                    await Task.Delay(100);
+                    if (Symbol.IdOrders.Contains(id))
+                    {
+                        Symbol.IsOpenOrder = false;
+                        Symbol.IdOrders.Remove(id);
+                    }
+                    else
+                    {
+                        Symbol.Run = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    WriteLog($"Failed CheckOrderId: {ex.Message}");
+                }
+            });
+        }
+        private async void OpenOrder()
+        {
+            await Task.Run(async () => {
+                try
+                {
+                    if (Symbol.PositionSide == "Both")
+                    {
+                        if (Symbol.Side == "Buy")
+                        {
+                            long orderId = await OrderAsync(OrderSide.Sell, Symbol.Quantity * 2, PositionSide.Both);
+                            Symbol.IdOrders.Add(orderId);
+                            Symbol.Side = "Sell";
+                        }
+                        else if (Symbol.Side == "Sell")
+                        {
+                            long orderId = await OrderAsync(OrderSide.Buy, Symbol.Quantity * 2, PositionSide.Both);
+                            Symbol.IdOrders.Add(orderId);
+                            Symbol.Side = "Buy";
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    WriteLog($"Failed OpenOrder: {ex.Message}");
+                }
+            });
+        }
+        private async Task<long> OrderAsync(OrderSide side, decimal quantity, PositionSide positionSide)
+        {
+            var result = await _client.UsdFuturesApi.Trading.PlaceOrderAsync(symbol: Symbol.Name, side: side, type: FuturesOrderType.Market, quantity: quantity, positionSide: positionSide);
+            if (!result.Success) WriteLog($"Failed OrderAsync: {result.Error?.Message}");
+            return result.Data.Id;
+        }
+        private void WriteLog(string text)
+        {
+            File.AppendAllText(_pathLog + Symbol.Name, DateTime.Now.ToString() + text + "\n");
         }
     }
 }

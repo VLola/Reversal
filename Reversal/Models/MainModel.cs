@@ -23,14 +23,14 @@ namespace Reversal.Models
                 OnPropertyChanged("Balance");
             }
         }
-        private string _symbol { get; set; }
-        public string Symbol
+        private bool _isLogin { get; set; }
+        public bool IsLogin
         {
-            get { return _symbol; }
+            get { return _isLogin; }
             set
             {
-                _symbol = value;
-                OnPropertyChanged("Symbol");
+                _isLogin = value;
+                OnPropertyChanged("IsLogin");
             }
         }
         private bool _selectAll { get; set; }

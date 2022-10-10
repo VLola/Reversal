@@ -4,9 +4,11 @@ using Binance.Net.Objects;
 using Binance.Net.Objects.Models.Futures.Socket;
 using Binance.Net.Objects.Models.Spot;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.CommonObjects;
 using Reversal.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -16,6 +18,7 @@ namespace Reversal.ViewModels
 {
     public class MainViewModel
     {
+        private string _pathLog = $"{Directory.GetCurrentDirectory()}/log/";
         // ------------- Test Api ----------------
         string ApiKey = "a4c675ddfa8005fdabf5580700bd87b2d0dff9108b1caa8295f5540e6cf118e5";
         string SecretKey = "211c4565fb98ad121a10ce2cce9c31456890786cbce501ad426b0bbace6e1102";
@@ -25,14 +28,20 @@ namespace Reversal.ViewModels
         //string ApiKey = "Si5U4TSmpX4ByMDQEiWu9aGnHaX7o66Hw1erDl5tsfOKw1sjXTpUrP0JhonXrGJR";
         //string SecretKey = "ddKGxVke1y7Y0WRMBeuMeKAfqNdU7aBC8eOeHXHMY6CqYGzl0MPfuM60UkX7Dnoa";
         // ------------- Real Api ----------------
-        public MainModel MainModel { get; set; }
-        private static BinanceClient _client { get; set; }
-        private static BinanceSocketClient _socketClient { get; set; }
+        public MainModel? MainModel { get; set; }
+        private BinanceClient? _client { get; set; }
+        private BinanceSocketClient? _socketClient { get; set; }
         public delegate void AccountOnOrderUpdate(BinanceFuturesStreamOrderUpdate OrderUpdate);
-        public event AccountOnOrderUpdate OnOrderUpdate;
+        public event AccountOnOrderUpdate? OnOrderUpdate;
         public MainViewModel()
         {
+            if (!Directory.Exists(_pathLog)) Directory.CreateDirectory(_pathLog);
             MainModel = new();
+            //Load();
+        }
+        private void Load()
+        {
+            MainModel.PropertyChanged += MainModel_PropertyChanged;
             // ------------- Test Api ----------------
             BinanceClientOptions clientOption = new();
             clientOption.UsdFuturesApiOptions.BaseAddress = "https://testnet.binancefuture.com";
@@ -53,10 +62,6 @@ namespace Reversal.ViewModels
             // ------------- Real Api ----------------
             _client.SetApiCredentials(new ApiCredentials(ApiKey, SecretKey));
             _socketClient.SetApiCredentials(new ApiCredentials(ApiKey, SecretKey));
-            Load();
-        }
-        private void Load() {
-            MainModel.PropertyChanged += MainModel_PropertyChanged;
             GetSumbolName();
             BalanceFutureAsync();
             SubscribeToAccount();
@@ -84,7 +89,7 @@ namespace Reversal.ViewModels
             list.Sort();
             foreach (var it in list)
             {
-                SymbolViewModel symbolViewModel = new(_socketClient, it);
+                SymbolViewModel symbolViewModel = new(_client, _socketClient, it);
                 OnOrderUpdate += symbolViewModel.OrderUpdate;
                 MainModel.Symbols.Add(symbolViewModel);
             }
@@ -94,12 +99,12 @@ namespace Reversal.ViewModels
             try
             {
                 var result = _client.UsdFuturesApi.ExchangeData.GetPricesAsync().Result;
-                if (!result.Success) MessageBox.Show("Error ListSymbols");
+                if (!result.Success) WriteLog($"Failed Success ListSymbols: {result.Error?.Message}");
                 return result.Data.ToList();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                WriteLog($"Failed ListSymbols: {ex.Message}");
                 return null;
             }
         }
@@ -115,7 +120,7 @@ namespace Reversal.ViewModels
                     var result = _client.UsdFuturesApi.Account.GetAccountInfoAsync().Result;
                     if (!result.Success)
                     {
-                        MessageBox.Show($"Failed BalanceFutureAsync: {result.Error.Message}");
+                        WriteLog($"Failed Success BalanceFutureAsync: {result.Error?.Message}");
                     }
                     else
                     {
@@ -125,7 +130,7 @@ namespace Reversal.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"BalanceFutureAsync {ex.Message}");
+                WriteLog($"Failed BalanceFutureAsync: {ex.Message}");
             }
         }
         #endregion
@@ -135,7 +140,7 @@ namespace Reversal.ViewModels
             var listenKey = await _client.UsdFuturesApi.Account.StartUserStreamAsync();
             if (!listenKey.Success)
             {
-                MessageBox.Show($"Failed to start user stream: listenKey");
+                WriteLog($"Failed to start user stream: listenKey");
             }
             else
             {
@@ -153,11 +158,15 @@ namespace Reversal.ViewModels
                     onListenKeyExpired => { });
                 if (!result.Success)
                 {
-                    MessageBox.Show($"Failed UserDataUpdates: {result.Error.Message}");
+                    WriteLog($"Failed UserDataUpdates: {result.Error?.Message}");
                 }
             }
         }
 
-        
+        private void WriteLog(string text)
+        {
+            File.AppendAllText(_pathLog + "_MAIN_LOG", DateTime.Now.ToString() + text + "\n");
+        }
+
     }
 }

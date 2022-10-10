@@ -16,6 +16,7 @@ namespace Reversal.Models
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
         }
+        public List<long> IdOrders = new();
         private string _name { get; set; }
         public string Name
         {
@@ -95,6 +96,16 @@ namespace Reversal.Models
             {
                 _side = value;
                 OnPropertyChanged("Side");
+            }
+        }
+        private bool _isOpenOrder { get; set; }
+        public bool IsOpenOrder
+        {
+            get { return _isOpenOrder; }
+            set
+            {
+                _isOpenOrder = value;
+                OnPropertyChanged("IsOpenOrder");
             }
         }
     }

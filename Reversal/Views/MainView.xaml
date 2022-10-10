@@ -9,54 +9,100 @@
         <Style TargetType="TextBlock" x:Key="styleTextBlockMain">
             <Setter Property="Margin" Value="5"/>
         </Style>
+        <Style TargetType="TextBox" x:Key="styleTextBoxMain">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="Button" x:Key="styleButtonMain">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
         <Style TargetType="CheckBox" x:Key="styleCheckBoxMain">
             <Setter Property="Margin" Value="5"/>
         </Style>
+        <Style TargetType="Grid" x:Key="styleGridMain">
+            <Setter Property="Visibility" Value="Hidden"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=MainModel.IsLogin}" Value="True">
+                    <Setter Property="Visibility" Value="Visible"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style TargetType="Grid" x:Key="styleGridLogin">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Visibility" Value="Visible"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=MainModel.IsLogin}" Value="True">
+                    <Setter Property="Visibility" Value="Hidden"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <Border Grid.Row="0" BorderThickness="1" BorderBrush="Black"/>
-        <Border Grid.Row="1" BorderThickness="1" BorderBrush="Black"/>
-        <Grid Grid.Row="0">
+        <Grid Style="{StaticResource styleGridLogin}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition Width="auto"/>
-                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="200"/>
             </Grid.ColumnDefinitions>
-            <CheckBox Content="Select all" IsChecked="{Binding Path=MainModel.SelectAll}" Style="{StaticResource styleCheckBoxMain}"/>
-            <TextBlock Grid.Column="1" Text="Balance:" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBlock Grid.Column="2" Text="{Binding Path=MainModel.Balance}" Style="{StaticResource styleTextBlockMain}"/>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Column="0" Grid.Row="0" Text="Name:" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBox Grid.Column="1" Grid.Row="0" Style="{StaticResource styleTextBoxMain}"/>
+            <TextBlock Grid.Column="0" Grid.Row="1" Text="Api key:" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBox Grid.Column="1" Grid.Row="1" Style="{StaticResource styleTextBoxMain}"/>
+            <TextBlock Grid.Column="0" Grid.Row="2" Text="Secret key:" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBox Grid.Column="1" Grid.Row="2" Style="{StaticResource styleTextBoxMain}"/>
+            <Button Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Content="Login" Style="{StaticResource styleButtonMain}"/>
         </Grid>
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="50"/>
-                <ColumnDefinition Width="100"/>
-                <ColumnDefinition Width="50"/>
-                <ColumnDefinition Width="100"/>
-                <ColumnDefinition Width="100"/>
-                <ColumnDefinition Width="100"/>
-                <ColumnDefinition Width="100"/>
-                <ColumnDefinition Width="100"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="Select" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBlock Grid.Column="1" Text="Symbol" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBlock Grid.Column="2" Text="Status" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBlock Grid.Column="3" Text="Price" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBlock Grid.Column="4" Text="Reversal price" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBlock Grid.Column="5" Text="Quantity" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBlock Grid.Column="6" Text="Position side" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBlock Grid.Column="7" Text="Side" Style="{StaticResource styleTextBlockMain}"/>
+        <Grid Style="{StaticResource styleGridMain}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" BorderThickness="1" BorderBrush="Black"/>
+            <Border Grid.Row="1" BorderThickness="1" BorderBrush="Black"/>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Content="Select all" IsChecked="{Binding Path=MainModel.SelectAll}" Style="{StaticResource styleCheckBoxMain}"/>
+                <TextBlock Grid.Column="1" Text="Balance:" Style="{StaticResource styleTextBlockMain}"/>
+                <TextBlock Grid.Column="2" Text="{Binding Path=MainModel.Balance}" Style="{StaticResource styleTextBlockMain}"/>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Select" Style="{StaticResource styleTextBlockMain}"/>
+                <TextBlock Grid.Column="1" Text="Symbol" Style="{StaticResource styleTextBlockMain}"/>
+                <TextBlock Grid.Column="2" Text="Status" Style="{StaticResource styleTextBlockMain}"/>
+                <TextBlock Grid.Column="3" Text="Price" Style="{StaticResource styleTextBlockMain}"/>
+                <TextBlock Grid.Column="4" Text="Reversal price" Style="{StaticResource styleTextBlockMain}"/>
+                <TextBlock Grid.Column="5" Text="Quantity" Style="{StaticResource styleTextBlockMain}"/>
+                <TextBlock Grid.Column="6" Text="Position side" Style="{StaticResource styleTextBlockMain}"/>
+                <TextBlock Grid.Column="7" Text="Side" Style="{StaticResource styleTextBlockMain}"/>
+            </Grid>
+            <ListBox Grid.Row="2" ItemsSource="{Binding Path=MainModel.Symbols}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <control:SymbolView/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Grid>
-        <ListBox Grid.Row="2" ItemsSource="{Binding Path=MainModel.Symbols}">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <control:SymbolView/>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
     </Grid>
 </UserControl>
