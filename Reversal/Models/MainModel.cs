@@ -43,5 +43,15 @@ namespace Reversal.Models
                 OnPropertyChanged("SelectAll");
             }
         }
+        private string _namel { get; set; }
+        public string Name
+        {
+            get { return _namel; }
+            set
+            {
+                _namel = value;
+                OnPropertyChanged("Name");
+            }
+        }
     }
 }

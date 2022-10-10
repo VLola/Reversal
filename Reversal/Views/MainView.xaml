@@ -51,12 +51,12 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <TextBlock Grid.Column="0" Grid.Row="0" Text="Name:" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBox Grid.Column="1" Grid.Row="0" Style="{StaticResource styleTextBoxMain}"/>
+            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Path=MainModel.Name}" Style="{StaticResource styleTextBoxMain}"/>
             <TextBlock Grid.Column="0" Grid.Row="1" Text="Api key:" Style="{StaticResource styleTextBlockMain}"/>
             <TextBox Grid.Column="1" Grid.Row="1" Style="{StaticResource styleTextBoxMain}"/>
             <TextBlock Grid.Column="0" Grid.Row="2" Text="Secret key:" Style="{StaticResource styleTextBlockMain}"/>
             <TextBox Grid.Column="1" Grid.Row="2" Style="{StaticResource styleTextBoxMain}"/>
-            <Button Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Content="Login" Style="{StaticResource styleButtonMain}"/>
+            <Button Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Content="Login" Command="{Binding Path=LoginCommand}" Style="{StaticResource styleButtonMain}"/>
         </Grid>
         <Grid Style="{StaticResource styleGridMain}">
             <Grid.RowDefinitions>
