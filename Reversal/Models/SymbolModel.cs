@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Binance.Net.Enums;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -35,6 +36,55 @@ namespace Reversal.Models
                 OnPropertyChanged("Price");
             }
         }
-
+        private decimal _reversalPrice { get; set; }
+        public decimal ReversalPrice
+        {
+            get { return _reversalPrice; }
+            set
+            {
+                _reversalPrice = value;
+                OnPropertyChanged("ReversalPrice");
+            }
+        }
+        private decimal _quantity { get; set; }
+        public decimal Quantity
+        {
+            get { return _quantity; }
+            set
+            {
+                _quantity = value;
+                OnPropertyChanged("Quantity");
+            }
+        }
+        private bool _run { get; set; }
+        public bool Run
+        {
+            get { return _run; }
+            set
+            {
+                _run = value;
+                OnPropertyChanged("Run");
+            }
+        }
+        private bool _confirmedReversalPrice { get; set; }
+        public bool ConfirmedReversalPrice
+        {
+            get { return _confirmedReversalPrice; }
+            set
+            {
+                _confirmedReversalPrice = value;
+                OnPropertyChanged("ConfirmedReversalPrice");
+            }
+        }
+        private PositionSide _positionSide { get; set; }
+        public PositionSide PositionSide
+        {
+            get { return _positionSide; }
+            set
+            {
+                _positionSide = value;
+                OnPropertyChanged("PositionSide");
+            }
+        }
     }
 }

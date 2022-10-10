@@ -23,5 +23,15 @@ namespace Reversal.Models
                 OnPropertyChanged("Balance");
             }
         }
+        private string _symbol { get; set; }
+        public string Symbol
+        {
+            get { return _symbol; }
+            set
+            {
+                _symbol = value;
+                OnPropertyChanged("Symbol");
+            }
+        }
     }
 }

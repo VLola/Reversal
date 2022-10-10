@@ -1,5 +1,7 @@
 ﻿using Binance.Net.Clients;
+using Binance.Net.Enums;
 using Binance.Net.Objects;
+using Binance.Net.Objects.Models.Futures.Socket;
 using Binance.Net.Objects.Models.Spot;
 using CryptoExchange.Net.Authentication;
 using Reversal.Models;
@@ -8,10 +10,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Reversal.ViewModels
 {
-    internal class MainViewModel
+    public class MainViewModel
     {
         // ------------- Test Api ----------------
         string ApiKey = "a4c675ddfa8005fdabf5580700bd87b2d0dff9108b1caa8295f5540e6cf118e5";
@@ -25,6 +28,8 @@ namespace Reversal.ViewModels
         public MainModel MainModel { get; set; }
         private static BinanceClient _client { get; set; }
         private static BinanceSocketClient _socketClient { get; set; }
+        public delegate void AccountOnOrderUpdate(BinanceFuturesStreamOrderUpdate OrderUpdate);
+        public event AccountOnOrderUpdate OnOrderUpdate;
         public MainViewModel()
         {
             MainModel = new();
@@ -68,6 +73,7 @@ namespace Reversal.ViewModels
             foreach (var it in list)
             {
                 SymbolViewModel symbolViewModel = new(_socketClient, it);
+                OnOrderUpdate += symbolViewModel.OrderUpdate;
                 MainModel.Symbols.Add(symbolViewModel);
             }
         }
@@ -130,19 +136,7 @@ namespace Reversal.ViewModels
                     },
                     onOrderUpdate =>
                     {
-                        //if (onOrderUpdate.Data.UpdateData.Symbol == symbol && onOrderUpdate.Data.UpdateData.Status == OrderStatus.Filled || onOrderUpdate.Data.UpdateData.Symbol == symbol && onOrderUpdate.Data.UpdateData.Status == OrderStatus.PartiallyFilled)
-                        //{
-                        //    Dispatcher.BeginInvoke(new Action(() =>
-                        //    {
-                        //        if (onOrderUpdate.Data.UpdateData.OrderId == short_order_id_0 && !CheckOrderIdToListOrders() || onOrderUpdate.Data.UpdateData.OrderId == long_order_id_0 && !CheckOrderIdToListOrders()) ClearListOrders();
-                        //        list_orders.Add(onOrderUpdate.Data.UpdateData);
-                        //        history_list_orders.Add(new OrderHistory(onOrderUpdate.Data.UpdateData));
-                        //        HISTORY_LIST.Items.Refresh();
-                        //        PriceOrder(onOrderUpdate.Data.UpdateData);
-                        //        LoadingChartOrders();
-                        //        TradeHistoryAsync();
-                        //    }));
-                        //}
+                        OnOrderUpdate?.Invoke(onOrderUpdate.Data);
                     },
                     onListenKeyExpired => { });
                 if (!result.Success)
@@ -150,7 +144,8 @@ namespace Reversal.ViewModels
                     MessageBox.Show($"Failed UserDataUpdates: {result.Error.Message}");
                 }
             }
-            
         }
+
+        
     }
 }

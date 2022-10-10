@@ -11,7 +11,12 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Grid Grid.Row="0">
-            <TextBlock Text="{Binding Path=MainModel.Balance}"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding Path=MainModel.Balance}"/>
+            <TextBlock Grid.Column="1" Text="{Binding Path=MainModel.Symbol}"/>
         </Grid>
         <ListBox Grid.Row="1" ItemsSource="{Binding Path=MainModel.Symbols}">
             <ListBox.ItemTemplate>
