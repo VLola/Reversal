@@ -56,9 +56,21 @@ namespace Reversal.ViewModels
             Load();
         }
         private void Load() {
+            MainModel.PropertyChanged += MainModel_PropertyChanged;
             GetSumbolName();
             BalanceFutureAsync();
             SubscribeToAccount();
+        }
+
+        private void MainModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "SelectAll")
+            {
+                foreach (var item in MainModel.Symbols)
+                {
+                    item.Symbol.Select = MainModel.SelectAll;
+                }
+            }
         }
 
         #region - List Sumbols -

@@ -33,5 +33,15 @@ namespace Reversal.Models
                 OnPropertyChanged("Symbol");
             }
         }
+        private bool _selectAll { get; set; }
+        public bool SelectAll
+        {
+            get { return _selectAll; }
+            set
+            {
+                _selectAll = value;
+                OnPropertyChanged("SelectAll");
+            }
+        }
     }
 }

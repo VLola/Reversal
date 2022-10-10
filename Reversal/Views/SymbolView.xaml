@@ -7,40 +7,33 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <Style TargetType="TextBlock" x:Key="styleReversalPrice">
-            <Setter Property="Foreground" Value="Red"/>
+        <Style TargetType="TextBlock" x:Key="styleStatus">
+            <Setter Property="Text" Value="Wait"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Path=Symbol.ConfirmedReversalPrice}" Value="True">
-                    <Setter Property="Foreground" Value="Green"/>
+                <DataTrigger Binding="{Binding Path=Symbol.Run}" Value="True">
+                    <Setter Property="Text" Value="Run"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50"/>
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="50"/>
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
-        <!--<Expander Grid.Column="0">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <CheckBox Grid.Column="0" IsChecked="{Binding Path=Symbol.Run}" Content="Run"/>
-                <TextBlock Grid.Column="1" Text="{Binding Path=Symbol.Price}"/>
-            </Grid>
-        </Expander>-->
-        <TextBlock Grid.Column="0" Text="{Binding Path=Symbol.Name}"/>
-        <CheckBox Grid.Column="1" IsChecked="{Binding Path=Symbol.Run}" Content="Run"/>
-        <TextBlock Grid.Column="2" Text="{Binding Path=Symbol.Price}"/>
-        <TextBlock Grid.Column="3" Text="{Binding Path=Symbol.ReversalPrice}" Style="{StaticResource styleReversalPrice}"/>
-        <!--<Button Grid.Column="4" Content="Confirm" Command="{Binding Path=ConfirmReversalPriceCommand}"/>-->
-        <TextBlock Grid.Column="4" Text="{Binding Path=Symbol.PositionSide}"/>
+        <CheckBox Grid.Column="0" IsChecked="{Binding Path=Symbol.Select}"/>
+        <TextBlock Grid.Column="1" Text="{Binding Path=Symbol.Name}"/>
+        <TextBlock Grid.Column="2" Style="{StaticResource styleStatus}"/>
+        <TextBlock Grid.Column="3" Text="{Binding Path=Symbol.Price}"/>
+        <TextBlock Grid.Column="4" Text="{Binding Path=Symbol.ReversalPrice}"/>
         <TextBlock Grid.Column="5" Text="{Binding Path=Symbol.Quantity}"/>
+        <TextBlock Grid.Column="6" Text="{Binding Path=Symbol.PositionSide}"/>
+        <TextBlock Grid.Column="7" Text="{Binding Path=Symbol.Side}"/>
     </Grid>
 </UserControl>

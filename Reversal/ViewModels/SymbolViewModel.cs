@@ -22,11 +22,11 @@ namespace Reversal.ViewModels
         private UpdateSubscription? _updateSubscription { get; set; }
         public SymbolModel Symbol { get; set; }
         private BinanceSocketClient _socketClient { get; set; }
-        private RelayCommand? _confirmReversalPriceCommand;
-        public RelayCommand ConfirmReversalPriceCommand
-        {
-            get { return _confirmReversalPriceCommand ?? (_confirmReversalPriceCommand = new RelayCommand(obj => { ConfirmReversalPrice(); })); }
-        }
+        //private RelayCommand? _confirmReversalPriceCommand;
+        //public RelayCommand ConfirmReversalPriceCommand
+        //{
+        //    get { return _confirmReversalPriceCommand ?? (_confirmReversalPriceCommand = new RelayCommand(obj => {  })); }
+        //}
         public SymbolViewModel(BinanceSocketClient socketClient, string symbolName)
         {
             Symbol = new();
@@ -44,7 +44,7 @@ namespace Reversal.ViewModels
             }
             else if(e.PropertyName == "ReversalPrice")
             {
-                Symbol.ConfirmedReversalPrice = false;
+
             }
         }
 
@@ -73,15 +73,11 @@ namespace Reversal.ViewModels
                 MessageBox.Show($"Unsubscribe {ex.Message}");
             }
         }
-        private void ConfirmReversalPrice()
-        {
-            Symbol.ConfirmedReversalPrice = true;
-        }
         string Path = $"{Directory.GetCurrentDirectory()}/log/";
         int count = 0;
         public void OrderUpdate(BinanceFuturesStreamOrderUpdate OrderUpdate)
         {
-            if(OrderUpdate.UpdateData.Symbol == Symbol.Name)
+            if(Symbol.Select && OrderUpdate.UpdateData.Symbol == Symbol.Name)
             {
                 if(OrderUpdate.UpdateData.Status == OrderStatus.Filled)
                 {
@@ -89,26 +85,18 @@ namespace Reversal.ViewModels
                     {
                         Symbol.Run = true;
                         Symbol.ReversalPrice = OrderUpdate.UpdateData.AveragePrice;
-                        Symbol.PositionSide = OrderUpdate.UpdateData.PositionSide;
                         Symbol.Quantity = OrderUpdate.UpdateData.Quantity;
+                        if(OrderUpdate.UpdateData.PositionSide == PositionSide.Both) Symbol.PositionSide = "Both";
+                        else if (OrderUpdate.UpdateData.PositionSide == PositionSide.Short) Symbol.PositionSide = "Short";
+                        else if (OrderUpdate.UpdateData.PositionSide == PositionSide.Long) Symbol.PositionSide = "Long";
+                        if (OrderUpdate.UpdateData.Side == OrderSide.Buy) Symbol.Side = "Buy";
+                        else Symbol.Side = "Sell";
                     }
                 }
+                // Write log
                 count++;
                 string json = JsonConvert.SerializeObject(OrderUpdate.UpdateData);
                 File.WriteAllText(Path + Symbol.Name + count, json);
-                //if (onOrderUpdate.Data.UpdateData.Symbol == symbol && onOrderUpdate.Data.UpdateData.Status == OrderStatus.Filled || onOrderUpdate.Data.UpdateData.Symbol == symbol && onOrderUpdate.Data.UpdateData.Status == OrderStatus.PartiallyFilled)
-                //{
-                //    Dispatcher.BeginInvoke(new Action(() =>
-                //    {
-                //        if (onOrderUpdate.Data.UpdateData.OrderId == short_order_id_0 && !CheckOrderIdToListOrders() || onOrderUpdate.Data.UpdateData.OrderId == long_order_id_0 && !CheckOrderIdToListOrders()) ClearListOrders();
-                //        list_orders.Add(onOrderUpdate.Data.UpdateData);
-                //        history_list_orders.Add(new OrderHistory(onOrderUpdate.Data.UpdateData));
-                //        HISTORY_LIST.Items.Refresh();
-                //        PriceOrder(onOrderUpdate.Data.UpdateData);
-                //        LoadingChartOrders();
-                //        TradeHistoryAsync();
-                //    }));
-                //}
             }
         }
     }

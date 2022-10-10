@@ -5,20 +5,53 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:control="clr-namespace:Reversal.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style TargetType="TextBlock" x:Key="styleTextBlockMain">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+        <Style TargetType="CheckBox" x:Key="styleCheckBoxMain">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
+        <Border Grid.Row="0" BorderThickness="1" BorderBrush="Black"/>
+        <Border Grid.Row="1" BorderThickness="1" BorderBrush="Black"/>
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Text="{Binding Path=MainModel.Balance}"/>
-            <TextBlock Grid.Column="1" Text="{Binding Path=MainModel.Symbol}"/>
+            <CheckBox Content="Select all" IsChecked="{Binding Path=MainModel.SelectAll}" Style="{StaticResource styleCheckBoxMain}"/>
+            <TextBlock Grid.Column="1" Text="Balance:" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBlock Grid.Column="2" Text="{Binding Path=MainModel.Balance}" Style="{StaticResource styleTextBlockMain}"/>
         </Grid>
-        <ListBox Grid.Row="1" ItemsSource="{Binding Path=MainModel.Symbols}">
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="50"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="50"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="100"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Select" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBlock Grid.Column="1" Text="Symbol" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBlock Grid.Column="2" Text="Status" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBlock Grid.Column="3" Text="Price" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBlock Grid.Column="4" Text="Reversal price" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBlock Grid.Column="5" Text="Quantity" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBlock Grid.Column="6" Text="Position side" Style="{StaticResource styleTextBlockMain}"/>
+            <TextBlock Grid.Column="7" Text="Side" Style="{StaticResource styleTextBlockMain}"/>
+        </Grid>
+        <ListBox Grid.Row="2" ItemsSource="{Binding Path=MainModel.Symbols}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <control:SymbolView/>

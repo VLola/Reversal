@@ -26,6 +26,17 @@ namespace Reversal.Models
                 OnPropertyChanged("Name");
             }
         }
+
+        private bool _select { get; set; }
+        public bool Select
+        {
+            get { return _select; }
+            set
+            {
+                _select = value;
+                OnPropertyChanged("Select");
+            }
+        }
         private decimal _price { get; set; }
         public decimal Price
         {
@@ -66,24 +77,24 @@ namespace Reversal.Models
                 OnPropertyChanged("Run");
             }
         }
-        private bool _confirmedReversalPrice { get; set; }
-        public bool ConfirmedReversalPrice
-        {
-            get { return _confirmedReversalPrice; }
-            set
-            {
-                _confirmedReversalPrice = value;
-                OnPropertyChanged("ConfirmedReversalPrice");
-            }
-        }
-        private PositionSide _positionSide { get; set; }
-        public PositionSide PositionSide
+        private string _positionSide { get; set; }
+        public string PositionSide
         {
             get { return _positionSide; }
             set
             {
                 _positionSide = value;
                 OnPropertyChanged("PositionSide");
+            }
+        }
+        private string _side { get; set; }
+        public string Side
+        {
+            get { return _side; }
+            set
+            {
+                _side = value;
+                OnPropertyChanged("Side");
             }
         }
     }
