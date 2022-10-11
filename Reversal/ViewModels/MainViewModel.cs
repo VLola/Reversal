@@ -3,6 +3,7 @@ using Binance.Net.Objects;
 using Binance.Net.Objects.Models.Futures.Socket;
 using Binance.Net.Objects.Models.Spot;
 using CryptoExchange.Net.Authentication;
+using CryptoExchange.Net.CommonObjects;
 using Newtonsoft.Json;
 using Reversal.Command;
 using Reversal.Models;
@@ -20,15 +21,6 @@ namespace Reversal.ViewModels
     {
         private const string _link = "https://drive.google.com/u/0/uc?id=13RLR9SIMLL2ibwDh8ouByOElk6Yw784J&export=download";
         private string _pathLog = $"{Directory.GetCurrentDirectory()}/log/";
-        // ------------- Test Api ----------------
-        string ApiKey = "a4c675ddfa8005fdabf5580700bd87b2d0dff9108b1caa8295f5540e6cf118e5";
-        string SecretKey = "211c4565fb98ad121a10ce2cce9c31456890786cbce501ad426b0bbace6e1102";
-        // ------------- Test Api ----------------
-
-        // ------------- Real Api ----------------
-        //string ApiKey = "Si5U4TSmpX4ByMDQEiWu9aGnHaX7o66Hw1erDl5tsfOKw1sjXTpUrP0JhonXrGJR";
-        //string SecretKey = "ddKGxVke1y7Y0WRMBeuMeKAfqNdU7aBC8eOeHXHMY6CqYGzl0MPfuM60UkX7Dnoa";
-        // ------------- Real Api ----------------
         public MainModel MainModel { get; set; } = new();
         private BinanceClient? _client { get; set; }
         private BinanceSocketClient? _socketClient { get; set; }
@@ -59,11 +51,10 @@ namespace Reversal.ViewModels
                     if (check)
                     {
                         Load();
-                        MainModel.IsLogin = true;
                     }
                     else
                     {
-                        MessageBox.Show("Login error!");
+                        MessageBox.Show("Login name failed!");
                     }
                 }
             }
@@ -71,29 +62,50 @@ namespace Reversal.ViewModels
         private void Load()
         {
             MainModel.PropertyChanged += MainModel_PropertyChanged;
-            // ------------- Test Api ----------------
-            BinanceClientOptions clientOption = new();
-            clientOption.UsdFuturesApiOptions.BaseAddress = "https://testnet.binancefuture.com";
-            _client = new(clientOption);
-
-            BinanceSocketClientOptions socketClientOption = new BinanceSocketClientOptions
+            if (MainModel.IsTestnet)
             {
-                AutoReconnect = true,
-                ReconnectInterval = TimeSpan.FromMinutes(1)
-            };
-            socketClientOption.UsdFuturesStreamsOptions.BaseAddress = "wss://stream.binancefuture.com";
-            _socketClient = new BinanceSocketClient(socketClientOption);
-            // ------------- Test Api ----------------
+                // ------------- Test Api ----------------
+                BinanceClientOptions clientOption = new();
+                clientOption.UsdFuturesApiOptions.BaseAddress = "https://testnet.binancefuture.com";
+                _client = new(clientOption);
 
-            // ------------- Real Api ----------------
-            //_client = new();
-            //_socketClient = new();
-            // ------------- Real Api ----------------
-            _client.SetApiCredentials(new ApiCredentials(ApiKey, SecretKey));
-            _socketClient.SetApiCredentials(new ApiCredentials(ApiKey, SecretKey));
-            GetSumbolName();
-            BalanceFutureAsync();
-            SubscribeToAccount();
+                BinanceSocketClientOptions socketClientOption = new BinanceSocketClientOptions
+                {
+                    AutoReconnect = true,
+                    ReconnectInterval = TimeSpan.FromMinutes(1)
+                };
+                socketClientOption.UsdFuturesStreamsOptions.BaseAddress = "wss://stream.binancefuture.com";
+                _socketClient = new BinanceSocketClient(socketClientOption);
+                // ------------- Test Api ----------------
+            }
+            else if (MainModel.IsReal)
+            {
+                // ------------- Real Api ----------------
+                _client = new();
+                _socketClient = new();
+                // ------------- Real Api ----------------
+            }
+
+            try
+            {
+                _client.SetApiCredentials(new ApiCredentials(MainModel.ApiKey, MainModel.SecretKey));
+                _socketClient.SetApiCredentials(new ApiCredentials(MainModel.ApiKey, MainModel.SecretKey));
+
+                MainModel.ApiKey = "";
+                MainModel.SecretKey = "";
+                if (CheckLogin())
+                {
+                    MainModel.IsLogin = true;
+                    GetSumbolName();
+                    BalanceFutureAsync();
+                    SubscribeToAccountAsync();
+                }
+                else MessageBox.Show("Login failed!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void MainModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -104,6 +116,32 @@ namespace Reversal.ViewModels
                 {
                     item.Symbol.Select = MainModel.SelectAll;
                 }
+            }
+            else if(e.PropertyName == "ListenKeyExpired")
+            {
+                if (MainModel.ListenKeyExpired)
+                {
+                    UpdateSubscribeToAccountAsync();
+                }
+            }
+        }
+        private bool CheckLogin()
+        {
+            try
+            {
+                var result = _client.UsdFuturesApi.Account.GetAccountInfoAsync().Result;
+                if (!result.Success)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
             }
         }
 
@@ -164,7 +202,7 @@ namespace Reversal.ViewModels
         }
         #endregion
 
-        private async void SubscribeToAccount()
+        private async void SubscribeToAccountAsync()
         {
             var listenKey = await _client.UsdFuturesApi.Account.StartUserStreamAsync();
             if (!listenKey.Success)
@@ -173,6 +211,7 @@ namespace Reversal.ViewModels
             }
             else
             {
+                WriteLog($"Listen Key Created");
                 var result = await _socketClient.UsdFuturesStreams.SubscribeToUserDataUpdatesAsync(listenKey: listenKey.Data,
                     onLeverageUpdate => { },
                     onMarginUpdate => { },
@@ -184,18 +223,35 @@ namespace Reversal.ViewModels
                     {
                         OnOrderUpdate?.Invoke(onOrderUpdate.Data);
                     },
-                    onListenKeyExpired => { });
+                    onListenKeyExpired => {
+                        if (!MainModel.ListenKeyExpired)
+                        {
+                            MainModel.ListenKeyExpired = true;
+                            WriteLog($"Listen Key Expired");
+                        }
+                    });
                 if (!result.Success)
                 {
                     WriteLog($"Failed UserDataUpdates: {result.Error?.Message}");
                 }
             }
         }
-
+        private async void UpdateSubscribeToAccountAsync()
+        {
+            await Task.Run(async () =>
+            {
+                await Task.Delay(100);
+                MainModel.ListenKeyExpired = false;
+                SubscribeToAccountAsync();
+            });
+        }
         private void WriteLog(string text)
         {
-            File.AppendAllText(_pathLog + "_MAIN_LOG", DateTime.Now.ToString() + text + "\n");
+            try
+            {
+                File.AppendAllText(_pathLog + "_MAIN_LOG", $"{DateTime.Now} {text}\n");
+            }
+            catch { }
         }
-
     }
 }

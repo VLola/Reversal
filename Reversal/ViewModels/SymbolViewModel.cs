@@ -181,7 +181,11 @@ namespace Reversal.ViewModels
         }
         private void WriteLog(string text)
         {
-            File.AppendAllText(_pathLog + Symbol.Name, DateTime.Now.ToString() + text + "\n");
+            try
+            {
+                File.AppendAllText(_pathLog + Symbol.Name, $"{DateTime.Now} {text}\n");
+            }
+            catch{ }
         }
     }
 }

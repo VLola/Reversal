@@ -43,14 +43,64 @@ namespace Reversal.Models
                 OnPropertyChanged("SelectAll");
             }
         }
-        private string _namel { get; set; }
+        private string _name { get; set; }
         public string Name
         {
-            get { return _namel; }
+            get { return _name; }
             set
             {
-                _namel = value;
+                _name = value;
                 OnPropertyChanged("Name");
+            }
+        }
+        private bool _listenKeyExpired { get; set; }
+        public bool ListenKeyExpired
+        {
+            get { return _listenKeyExpired; }
+            set
+            {
+                _listenKeyExpired = value;
+                OnPropertyChanged("ListenKeyExpired");
+            }
+        }
+        private bool _isReal { get; set; } = true;
+        public bool IsReal
+        {
+            get { return _isReal; }
+            set
+            {
+                _isReal = value;
+                OnPropertyChanged("IsReal");
+            }
+        }
+        private bool _isTestnet { get; set; }
+        public bool IsTestnet
+        {
+            get { return _isTestnet; }
+            set
+            {
+                _isTestnet = value;
+                OnPropertyChanged("IsTestnet");
+            }
+        }
+        private string _apiKey { get; set; }
+        public string ApiKey
+        {
+            get { return _apiKey; }
+            set
+            {
+                _apiKey = value;
+                OnPropertyChanged("ApiKey");
+            }
+        }
+        private string _secretKey { get; set; }
+        public string SecretKey
+        {
+            get { return _secretKey; }
+            set
+            {
+                _secretKey = value;
+                OnPropertyChanged("SecretKey");
             }
         }
     }

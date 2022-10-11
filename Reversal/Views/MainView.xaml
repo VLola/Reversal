@@ -16,6 +16,10 @@
         <Style TargetType="Button" x:Key="styleButtonMain">
             <Setter Property="Margin" Value="5"/>
         </Style>
+        <Style TargetType="RadioButton" x:Key="styleRadioButtonMain">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
         <Style TargetType="CheckBox" x:Key="styleCheckBoxMain">
             <Setter Property="Margin" Value="5"/>
         </Style>
@@ -49,14 +53,23 @@
                 <RowDefinition/>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
             <TextBlock Grid.Column="0" Grid.Row="0" Text="Name:" Style="{StaticResource styleTextBlockMain}"/>
             <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Path=MainModel.Name}" Style="{StaticResource styleTextBoxMain}"/>
             <TextBlock Grid.Column="0" Grid.Row="1" Text="Api key:" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBox Grid.Column="1" Grid.Row="1" Style="{StaticResource styleTextBoxMain}"/>
+            <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Path=MainModel.ApiKey}" Style="{StaticResource styleTextBoxMain}"/>
             <TextBlock Grid.Column="0" Grid.Row="2" Text="Secret key:" Style="{StaticResource styleTextBlockMain}"/>
-            <TextBox Grid.Column="1" Grid.Row="2" Style="{StaticResource styleTextBoxMain}"/>
-            <Button Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Content="Login" Command="{Binding Path=LoginCommand}" Style="{StaticResource styleButtonMain}"/>
+            <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding Path=MainModel.SecretKey}" Style="{StaticResource styleTextBoxMain}"/>
+            <Grid Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <RadioButton Grid.Column="0" Content="Real" IsChecked="{Binding Path=MainModel.IsReal}" Style="{StaticResource styleRadioButtonMain}"/>
+                <RadioButton Grid.Column="1" Content="Testnet" IsChecked="{Binding Path=MainModel.IsTestnet}" Style="{StaticResource styleRadioButtonMain}"/>
+            </Grid>
+            <Button Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2" Content="Login" Command="{Binding Path=LoginCommand}" Style="{StaticResource styleButtonMain}"/>
         </Grid>
         <Grid Style="{StaticResource styleGridMain}">
             <Grid.RowDefinitions>
