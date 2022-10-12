@@ -117,11 +117,11 @@ namespace Reversal.ViewModels
                     item.Symbol.Select = MainModel.SelectAll;
                 }
             }
-            else if(e.PropertyName == "ListenKeyExpired")
+            else if (e.PropertyName == "TakeProfit")
             {
-                if (MainModel.ListenKeyExpired)
+                foreach (var item in MainModel.Symbols)
                 {
-                    UpdateSubscribeToAccountAsync();
+                    item.Symbol.TakeProfit = MainModel.TakeProfit;
                 }
             }
         }
@@ -228,6 +228,7 @@ namespace Reversal.ViewModels
                         {
                             MainModel.ListenKeyExpired = true;
                             WriteLog($"Listen Key Expired");
+                            UpdateSubscribeToAccountAsync();
                         }
                     });
                 if (!result.Success)
@@ -240,7 +241,7 @@ namespace Reversal.ViewModels
         {
             await Task.Run(async () =>
             {
-                await Task.Delay(100);
+                await Task.Delay(1000);
                 MainModel.ListenKeyExpired = false;
                 SubscribeToAccountAsync();
             });

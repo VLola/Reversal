@@ -103,5 +103,15 @@ namespace Reversal.Models
                 OnPropertyChanged("SecretKey");
             }
         }
+        private decimal _takeProfit { get; set; } = 5m;
+        public decimal TakeProfit
+        {
+            get { return _takeProfit; }
+            set
+            {
+                _takeProfit = value;
+                OnPropertyChanged("TakeProfit");
+            }
+        }
     }
 }

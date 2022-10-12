@@ -25,7 +25,9 @@
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="100"/>
             <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="50"/>
             <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="50"/>
         </Grid.ColumnDefinitions>
         <CheckBox Grid.Column="0" IsChecked="{Binding Path=Symbol.Select}"/>
         <TextBlock Grid.Column="1" Text="{Binding Path=Symbol.Name}"/>
@@ -35,5 +37,7 @@
         <TextBlock Grid.Column="5" Text="{Binding Path=Symbol.Quantity}"/>
         <TextBlock Grid.Column="6" Text="{Binding Path=Symbol.PositionSide}"/>
         <TextBlock Grid.Column="7" Text="{Binding Path=Symbol.Side}"/>
+        <TextBlock Grid.Column="8" Text="{Binding Path=Symbol.PriceTakeProfit}"/>
+        <TextBox Grid.Column="9" Text="{Binding Path=Symbol.TakeProfit}"/>
     </Grid>
 </UserControl>

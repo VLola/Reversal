@@ -108,5 +108,35 @@ namespace Reversal.Models
                 OnPropertyChanged("IsOpenOrder");
             }
         }
+        private bool _isCloseOrder { get; set; }
+        public bool IsCloseOrder
+        {
+            get { return _isCloseOrder; }
+            set
+            {
+                _isCloseOrder = value;
+                OnPropertyChanged("IsCloseOrder");
+            }
+        }
+        private decimal _takeProfit { get; set; } = 5m;
+        public decimal TakeProfit
+        {
+            get { return _takeProfit; }
+            set
+            {
+                _takeProfit = value;
+                OnPropertyChanged("TakeProfit");
+            }
+        }
+        private decimal _priceTakeProfit { get; set; }
+        public decimal PriceTakeProfit
+        {
+            get { return _priceTakeProfit; }
+            set
+            {
+                _priceTakeProfit = value;
+                OnPropertyChanged("PriceTakeProfit");
+            }
+        }
     }
 }

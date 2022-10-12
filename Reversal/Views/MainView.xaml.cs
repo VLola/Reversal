@@ -1,4 +1,6 @@
 ﻿using Reversal.ViewModels;
+using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Reversal.Views

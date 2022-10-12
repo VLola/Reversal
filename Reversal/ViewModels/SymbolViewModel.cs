@@ -33,6 +33,23 @@ namespace Reversal.ViewModels
                 if (Symbol.Run) SubscribeToAggregatedTradeUpdatesAsync();
                 else UnsubscribeAsync();
             }
+            else if (e.PropertyName == "TakeProfit")
+            {
+                if (Symbol.Run)
+                {
+                    if (Symbol.PositionSide == "Both")
+                    {
+                        if (Symbol.Side == "Buy")
+                        {
+                            Symbol.PriceTakeProfit = Symbol.ReversalPrice + Symbol.ReversalPrice * Symbol.TakeProfit / 100;
+                        }
+                        else if (Symbol.Side == "Sell")
+                        {
+                            Symbol.PriceTakeProfit = Symbol.ReversalPrice - Symbol.ReversalPrice * Symbol.TakeProfit / 100;
+                        }
+                    }
+                }
+            }
         }
         private async void SubscribeToAggregatedTradeUpdatesAsync()
         {
@@ -41,13 +58,20 @@ namespace Reversal.ViewModels
                 var result = await _socketClient.UsdFuturesStreams.SubscribeToAggregatedTradeUpdatesAsync(Symbol.Name, Message =>
                 {
                     Symbol.Price = Message.Data.Price;
-                    if (!Symbol.IsOpenOrder)
+                    if (!Symbol.IsOpenOrder && Symbol.Run)
                     {
                         if (Symbol.PositionSide == "Both")
                         {
                             if (Symbol.Side == "Buy")
                             {
-                                if (Symbol.Price < Symbol.ReversalPrice)
+                                Symbol.PriceTakeProfit = Symbol.ReversalPrice + Symbol.ReversalPrice * Symbol.TakeProfit / 100;
+                                if (Symbol.Price > Symbol.PriceTakeProfit)
+                                {
+                                    Symbol.IsOpenOrder = true;
+                                    Symbol.IsCloseOrder = true;
+                                    OpenOrder();
+                                }
+                                else if (Symbol.Price < Symbol.ReversalPrice)
                                 {
                                     Symbol.IsOpenOrder = true;
                                     OpenOrder();
@@ -55,7 +79,14 @@ namespace Reversal.ViewModels
                             }
                             else if (Symbol.Side == "Sell")
                             {
-                                if (Symbol.Price > Symbol.ReversalPrice)
+                                Symbol.PriceTakeProfit = Symbol.ReversalPrice - Symbol.ReversalPrice * Symbol.TakeProfit / 100;
+                                if (Symbol.Price < Symbol.PriceTakeProfit)
+                                {
+                                    Symbol.IsOpenOrder = true;
+                                    Symbol.IsCloseOrder = true;
+                                    OpenOrder();
+                                }
+                                else if (Symbol.Price > Symbol.ReversalPrice)
                                 {
                                     Symbol.IsOpenOrder = true;
                                     OpenOrder();
@@ -96,6 +127,7 @@ namespace Reversal.ViewModels
             Symbol.PositionSide = "";
             Symbol.Side = "";
             Symbol.Price = 0m;
+            Symbol.PriceTakeProfit = 0m;
         }
         public void OrderUpdate(BinanceFuturesStreamOrderUpdate OrderUpdate)
         {
@@ -111,8 +143,15 @@ namespace Reversal.ViewModels
                         if(OrderUpdate.UpdateData.PositionSide == PositionSide.Both) Symbol.PositionSide = "Both";
                         else if (OrderUpdate.UpdateData.PositionSide == PositionSide.Short) Symbol.PositionSide = "Short";
                         else if (OrderUpdate.UpdateData.PositionSide == PositionSide.Long) Symbol.PositionSide = "Long";
-                        if (OrderUpdate.UpdateData.Side == OrderSide.Buy) Symbol.Side = "Buy";
-                        else Symbol.Side = "Sell";
+                        if (OrderUpdate.UpdateData.Side == OrderSide.Buy)
+                        {
+                            Symbol.Side = "Buy";
+                            Symbol.PriceTakeProfit = Symbol.ReversalPrice + Symbol.ReversalPrice * Symbol.TakeProfit / 100;
+                        }
+                        else {
+                            Symbol.Side = "Sell";
+                            Symbol.PriceTakeProfit = Symbol.ReversalPrice - Symbol.ReversalPrice * Symbol.TakeProfit / 100;
+                        }
                     }
                     else
                     {
@@ -132,8 +171,18 @@ namespace Reversal.ViewModels
                     await Task.Delay(100);
                     if (Symbol.IdOrders.Contains(id))
                     {
-                        Symbol.IsOpenOrder = false;
-                        Symbol.IdOrders.Remove(id);
+                        if (Symbol.IsCloseOrder)
+                        {
+                            Symbol.Run = false;
+                            Symbol.IsCloseOrder = false;
+                            Symbol.IsOpenOrder = false;
+                            Symbol.IdOrders.Remove(id);
+                        }
+                        else
+                        {
+                            Symbol.IsOpenOrder = false;
+                            Symbol.IdOrders.Remove(id);
+                        }
                     }
                     else
                     {
@@ -153,15 +202,18 @@ namespace Reversal.ViewModels
                 {
                     if (Symbol.PositionSide == "Both")
                     {
+                        decimal quantity;
+                        if (Symbol.IsCloseOrder) quantity = Symbol.Quantity;
+                        else quantity = Symbol.Quantity * 2;
                         if (Symbol.Side == "Buy")
                         {
-                            long orderId = await OrderAsync(OrderSide.Sell, Symbol.Quantity * 2, PositionSide.Both);
+                            long orderId = await OrderAsync(OrderSide.Sell, quantity, PositionSide.Both);
                             Symbol.IdOrders.Add(orderId);
                             Symbol.Side = "Sell";
                         }
                         else if (Symbol.Side == "Sell")
                         {
-                            long orderId = await OrderAsync(OrderSide.Buy, Symbol.Quantity * 2, PositionSide.Both);
+                            long orderId = await OrderAsync(OrderSide.Buy, quantity, PositionSide.Both);
                             Symbol.IdOrders.Add(orderId);
                             Symbol.Side = "Buy";
                         }
